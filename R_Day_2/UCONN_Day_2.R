@@ -21,7 +21,7 @@ install.packages("dplyr_0.4.3.tar.gz", type = "source", repos = NULL)
 install.packages("devtools", depend = TRUE)
 devtools::install_github("hadley/dplyr")
 
-library("dplyr") # To operate a package you must install it AND then load it. 
+library("dplyr") # To operate a package you must install it AND then load it.
 sessionInfo()
 # or
 packageDescription("dplyr")
@@ -40,16 +40,16 @@ packageDescription("dplyr")$Version
 # Cool, so we have dplyr installed. What is it? dplyr is a package that provides easy tools for the most common data manipulation tasks. the d stands for data frames. It is written in C++ and is very fast.
 # Lets load our portal rodents data
 
-surveys <- read.csv("Combined.csv", header = T)
+surveys <- read.csv("UCONN_SWC_Day2/Combined.csv", header = T)
 head(surveys)
 # It is important to spell out TRUE and FALSE
 
 T <- FALSE
-surveys <- read.csv("Combined.csv", header = T)
+surveys <- read.csv("UCONN_SWC_Day2/Combined.csv", header = T)
 head(surveys)
 TRUE <- FALSE
 
-surveys <- read.csv("Combined.csv", header = TRUE)
+surveys <- read.csv("UCONN_SWC_Day2/Combined.csv", header = TRUE)
 head(surveys)
 str(surveys)
 
@@ -63,24 +63,24 @@ str(surveys)
 select(surveys, plot_id, species_id, weight)
 
 # filter grabs rows
-# How do we grab only year 1995? 
+# How do we grab only year 1995?
 
 filter(surveys, year == 1995)
 
 
-# Pipes %>% - a specific type of pipe (not like a Unix pipe) that comes from the magrittr package. Allow you to select and filter at the same time. 
+# Pipes %>% - a specific type of pipe (not like a Unix pipe) that comes from the magrittr package. Allow you to select and filter at the same time.
 
 surveys %>% filter(weight < 5) %>% select(species_id, sex, weight)
 
-# challenge: create an object that contains species_id, weight, and sex for animals that are equal or greater than 200. 
+# challenge: create an object that contains species_id, weight, and sex for animals that are equal or greater than 200.
 
 
 # Subset the data to include rows before 1995, retain columns year, sex, weight
 
 
 
-
-
+s1 <- surveys %>% filter(weight >= 200) %>% select(species_id, weight, sex)
+s1
 
 # answer
 s2 <- surveys %>% filter(year < 1995) %>% select(year, sex, weight)
@@ -91,7 +91,7 @@ head(s2)
 
 ### Mutate - creates new columns based on values in existing columns
 
-surveys %>% mutate(weight_kg = weight / 1000) 
+surveys %>% mutate(weight_kg = weight / 1000)
 
 # This runs off the screen. Bleurgh. If only there was a way to look at the first few lines...
 
@@ -104,7 +104,7 @@ surveys %>% filter(!is.na(weight)) %>% mutate(weight_kg = weight / 1000) %>% hea
 # This means, split the data into groups, apply a function, and combine the results. We split the data into groups with group_by().
 
 surveys %>% group_by(sex) %>% tally()
-# group_by collapses a group into a single row - awesome for generating summaries. 
+# group_by collapses a group into a single row - awesome for generating summaries.
 
 surveys %>% group_by(sex) %>% summarise(mean_weight = mean(weight, na.rm = TRUE))
 
@@ -119,7 +119,7 @@ surveys %>% group_by(sex, species_id) %>% summarize(mean_weight = mean(weight, n
 
 
 # Challenge
-# How many times was each plot surveyed?
+# How many times was each plot surveyed? plot_id
 
 # Use group_by() and summarise() to find mean, min and max hindfoot lenght for each species.
 
@@ -134,7 +134,7 @@ surveys %>% group_by(plot_id) %>% tally()
 
 surveys %>% filter(!is.na(hindfoot_length)) %>% group_by(species) %>% summarise(mean_hl = mean(hindfoot_length), min_hl = min(hindfoot_length), max_hl = max(hindfoot_length))
 
-surveys %>% group_by(species) %>% filter(!is.na(hindfoot_length)) %>% summarise(mean_hl = mean(hindfoot_length), min_hl = min(hindfoot_length), max_hl = max(hindfoot_length))
+
 
 
 
@@ -155,7 +155,7 @@ library("ggplot2")
 library("dplyr")
 
 
-surveys_raw <- read.csv("surveys.csv")
+surveys_raw <- read.csv("surveys.csv", header = TRUE)
 # surveys_raw <- read.csv("https://ndownloader.figshare.com/files/2292172") #loads directly from FigShare
 head(surveys_raw)
 str(surveys_raw)
@@ -177,27 +177,28 @@ summary(surveys_complete)
 surveys_complete <- surveys_raw %>% filter(species_id != "") %>% filter(!is.na(weight)) %>% filter(!is.na(hindfoot_length))
 summary(surveys_complete)
 
-# right now this is in R's memory. What if you want to quit R? You don't want to re-run all these steps every time, especially if you have some analtical results that took a long to to achieve. So let us save these data.
+# right now this is in R's memory. What if you want to quit R? You don't want to re-run all these steps every time, especially if you have some analytical results that took a long to to achieve. So let us save these data.
 
-save(list = "surveys_complete", file = "Surv_comp.RData") 
+save(list = "surveys_complete", file = "Surv_comp.RData")
 
 #what if you want to save every object in R's memory? R wants a list of name.
 save(list = ls(), file = "Surv_comp.RData")
 load(file = "Surv_comp.RData")
 ls()
-sessionInfo() # still have to re-load packages, but don't need to reinstall. 
+sessionInfo() # still have to re-load packages, but don't need to reinstall.
 
-# ok, back to it. 
+# ok, back to it.
 # count records per species
-species_counts <- surveys_complete %>% group_by(species_id) %>% tally
+species_counts <- surveys_complete %>% group_by(species_id) %>% tally()
 head(species_counts)
 
 # get names of those frequent species
-frequent_species <- species_counts %>% filter(n >= 10) %>% select(species_id) 
+frequent_species <- species_counts %>% filter(n >= 10) %>% select(species_id)
 head(frequent_species)
 
 # now, let's make an object of the commonly occuring species
 surveys_complete <- surveys_complete %>% filter(species_id %in% frequent_species$species_id)
+summary(surveys_complete)
 
 # Make simple scatter plot of hindfoot_length (in millimeters) as a function of weight (in grams), using basic R plotting capabilities.
 
@@ -215,7 +216,7 @@ plot(x = surveys_complete$weight, y = surveys_complete$hindfoot_length, pch = 19
 # bind the plot to a specific data frame using the data argument
 ggplot(data = surveys_complete)
 
-# define aesthetics ( aes), that maps variables in the data to axes on the plot or to plotting size, shape color, etc.,
+# define aesthetics (aes), that maps variables in the data to axes on the plot or to plotting size, shape color, etc.,
 ggplot(data = surveys_complete, aes(x = weight, y = hindfoot_length))
 
 # add geoms – graphical representation of the data in the plot (points, lines, bars). To add a geom to the plot use + operator:
@@ -243,7 +244,7 @@ ggplot(data = surveys_complete, aes(x = species_id, y = weight)) + geom_jitter(a
 ## Plotting time series data
 # Let’s calculate number of counts per year for each species. To do that we need to group data first and count records within each group.
 
-yearly_counts <- surveys_complete %>% group_by(year, species_id) %>% tally
+yearly_counts <- surveys_complete %>% group_by(year, species_id) %>% tally()
 summary(yearly_counts)
 
 # Timelapse data can be visualised as a line plot with years on x axis and counts on y axis.
@@ -270,7 +271,7 @@ ggplot(data = yearly_counts, aes(x = year, y = n, color = species_id)) + geom_li
 
 # Answers
 sex_values <- c("F", "M")
-surveys_complete <- surveys_complete %>% filter(sex %in% sex_values) 
+surveys_complete <- surveys_complete %>% filter(sex %in% sex_values)
 
 
 yearly_sex_counts <- surveys_complete %>% group_by(year, species_id, sex) %>% tally
@@ -291,7 +292,7 @@ ggplot(data = yearly_weight, aes(x=year, y=avg_weight, color = species_id, group
 
 
 # make separate plots per sex since weight of males and females can differ a lot
-ggplot(data = yearly_weight, aes(x=year, y=avg_weight, color = species_id, group = species_id)) + geom_line() + facet_wrap(~ sex) + theme_bw() 
+ggplot(data = yearly_weight, aes(x=year, y=avg_weight, color = species_id, group = species_id)) + geom_line() + facet_wrap(~ sex) + theme_bw()
 
 
 # Now, let’s change names of axes to something more informative than ‘year’ and ‘n’ and add title to this figure:
